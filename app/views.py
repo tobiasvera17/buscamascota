@@ -4,15 +4,17 @@ import urllib
 from io import BytesIO
 from urllib.parse import urlencode
 
+
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from PIL import Image
 from app.forms import ReportForm, ReportSucessForm, FilterForm
 from app.models import Report, ReportImage
 from app.utils import tweet, post_instagram_facebook
-
+from datetime import date
 
 def index(request):
     return render(request, 'index.html')
@@ -102,6 +104,7 @@ def map(request):
 
     page_obj = paginator.get_page(page_number)
 
+    print(page_obj)
     context = {
         'reports': json.dumps(reports, cls=DjangoJSONEncoder),
         'page_obj': page_obj,
@@ -289,3 +292,74 @@ def report(request, report_id):
         return render(request, 'reporte.html', context)
     else:
         return render(request, '404.html')
+
+def prueba_json(request):
+    report_type = specie = country = city = date_from = date_to = ''
+
+    if request.method == 'POST':
+        form = FilterForm(request.POST)
+        # if 'search' in request.POST:
+        if form.is_valid():
+            report_type = form.cleaned_data['report_type']
+            specie = form.cleaned_data['specie']
+            country = form.cleaned_data['country']
+            city = form.cleaned_data['city']
+            date_from = form.cleaned_data['date_from']
+            date_to = form.cleaned_data['date_to']
+    else:
+        form = FilterForm()
+
+    reports = __getReports(report_type, specie, country, city, date_from, date_to)
+
+    paginator = Paginator(reports, 1)  # Show 15 reports per page.
+
+    page_number = request.GET.get('page')
+
+    if page_number == 0:
+        page_number = 1
+
+    page_obj = paginator.get_page(page_number)
+    print(page_obj)
+    data = {
+        'reports':reports
+    }
+
+    return JsonResponse(data)
+
+
+def prueba_json_ultimo_ano(request):
+    this_year = date.today().strftime('%Y')
+    report_type = specie = country = city =''
+    date_from = this_year + '-01-01'
+    date_to = this_year + '-12-31'
+
+    if request.method == 'POST':
+        form = FilterForm(request.POST)
+        # if 'search' in request.POST:
+        if form.is_valid():
+            report_type = form.cleaned_data['report_type']
+            specie = form.cleaned_data['specie']
+            country = form.cleaned_data['country']
+            city = form.cleaned_data['city']
+            date_from = form.cleaned_data['date_from']
+            date_to = form.cleaned_data['date_to']
+    else:
+        form = FilterForm()
+
+    reports = __getReports(report_type, specie, country, city, date_from, date_to)
+
+    paginator = Paginator(reports, 1)  # Show 15 reports per page.
+
+    page_number = request.GET.get('page')
+
+    if page_number == 0:
+        page_number = 1
+
+    page_obj = paginator.get_page(page_number)
+
+    data = {
+        'reports':reports
+    }
+
+    return JsonResponse(data)
+
