@@ -15,6 +15,10 @@ from app.forms import ReportForm, ReportSucessForm, FilterForm
 from app.models import Report, ReportImage
 from app.utils import tweet, post_instagram_facebook
 from datetime import date
+from app.serializers import ReportSerializer
+
+
+
 
 def index(request):
     return render(request, 'index.html')
@@ -95,7 +99,7 @@ def map(request):
 
     reports = __getReports(report_type, specie, country, city, date_from, date_to)
 
-    paginator = Paginator(reports, 15)  # Show 15 reports per page.
+    paginator = Paginator(reports, 1)  # Show 15 reports per page.
 
     page_number = request.GET.get('page')
 
@@ -104,7 +108,6 @@ def map(request):
 
     page_obj = paginator.get_page(page_number)
 
-    print(page_obj)
     context = {
         'reports': json.dumps(reports, cls=DjangoJSONEncoder),
         'page_obj': page_obj,
@@ -293,7 +296,7 @@ def report(request, report_id):
     else:
         return render(request, '404.html')
 
-def prueba_json(request):
+def reportsList(request):
     report_type = specie = country = city = date_from = date_to = ''
 
     if request.method == 'POST':
@@ -319,15 +322,12 @@ def prueba_json(request):
         page_number = 1
 
     page_obj = paginator.get_page(page_number)
-    print(page_obj)
-    data = {
-        'reports':reports
-    }
-
-    return JsonResponse(data)
-
-
-def prueba_json_ultimo_ano(request):
+    
+    serializer = ReportSerializer(page_obj, many=True)
+    
+    return JsonResponse(serializer.data, safe=False)
+    
+def reportsListThisYear(request):
     this_year = date.today().strftime('%Y')
     report_type = specie = country = city =''
     date_from = this_year + '-01-01'
@@ -348,17 +348,8 @@ def prueba_json_ultimo_ano(request):
 
     reports = __getReports(report_type, specie, country, city, date_from, date_to)
 
-    paginator = Paginator(reports, 1)  # Show 15 reports per page.
-
-    page_number = request.GET.get('page')
-
-    if page_number == 0:
-        page_number = 1
-
-    page_obj = paginator.get_page(page_number)
-
     data = {
-        'reports':reports
+        'reports': reports
     }
 
     return JsonResponse(data)

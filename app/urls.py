@@ -13,9 +13,9 @@ urlpatterns = [
     path('terminos/', views.terms, name='terminos'),
     path('licencia/', views.license, name='licencia'),
     path('exito/<int:report_id>', views.success, name='success'),
-    path('prueba/', views.prueba_json, name="prueba_json"),
-    path('prueba_ultimo_ano/<int:page>', views.map, name='map'),
-    path('prueba_ultimo_ano/', views.prueba_json_ultimo_ano, name="prueba_json_ultimo_ano"),
+    path('reports_list/', views.reportsList, name="reports_list"),
+    path('reports_list/<int:page>', views.reportsList, name='reports_list'),
+    path('reports_list_this_year/', views.reportsListThisYear, name="reports_list_this_year"),
     re_path(r'^reporte/(?P<report_id>[0-9]+)$', views.report, name='report'),
 ]
 
